@@ -8,19 +8,24 @@ app.use(express.urlencoded({
     extended: false
 }));
 
-app.get("/", (req,res)=>{
+app.get("/getall",async (req,res)=>{
     console.log("API is up");
-})
+    const book = await db.Book.findAll({ });
+    console.log(book)
+
+    res.status(201).send(book);
+
+}) 
 
 app.post("/books", async (req, res) => {
-    const data = req.body;
-  
     try {
-      const books = await db.Book.bulkCreate(data);
-      res.status(201).send(books);
+      const data = req.body;
+      console.log(data);
+      const book = await db.Book.create(data);
+      res.send(book);
     } catch (err) {
       // Send a 400 Bad Request response if there's an error
-      res.status(400).send(err.errors? err.errors.map((error) => error.message) : err.message);
+      res.send(err)
     }
   });
 
@@ -36,7 +41,6 @@ app.post("/books", async (req, res) => {
             id: id
           }
         });
-        console.log(book);
         if (!book) res.send({
           Book: "Book not found"
         });
@@ -52,49 +56,35 @@ app.post("/books", async (req, res) => {
     const id = req.params.id;
     const data = req.body;
     try {
-        console.log('Updating book with ID:', id);
-        console.log('Update data:', data);
-
-        const [rowsUpdated, [updatedBook]] = await db.book.update(data, {
-            where: {
-                id: id
-            },
-            returning: true
-        });
-
-        console.log('Rows updated:', rowsUpdated);
-        console.log('Updated book:', updatedBook);
-
-        if (rowsUpdated === 0) {
-            res.status(404).send('Book not found');
-        } else {
-            res.status(200).json({ message: 'Book updated', updatedBook });
+      const book = await db.Book.update(data, {
+        where: {
+          id: id
         }
+      });
+      res.send('book updated');
     } catch (err) {
-        console.error('Error updating book:', err);
-        res.status(500).send('Internal Server Error');
+      res.send(err);
     }
-});
-
-app.delete("/books/:id", async (req, res) => {
-  const id = req.params.id;
-  try {
-    const book = await db.Book.destroy({
-      where: {
-        id : id
+  });
+  
+  app.delete("/books/:id", async (req, res) => {
+    const id = req.params.id;
+    try {
+      const deletedCount = await db.Book.destroy({
+        where: {
+          id: id
+        }
+      });
+      if (deletedCount === 0) {
+        res.status(404).send('No records were deleted');
+      } else {
+        res.status(200).send(`${deletedCount} record(s) were deleted`);
       }
-    });
-    if (book === 0) {
-      res.send('No records were deleted');
-    } else {
-      res.send(`{book} number of records were deleted`);
+    } catch (err) {
+      res.status(500).send('Internal Server Error');
     }
-  } catch (err) {
-    res.send(err);
-  }
-});
-
-
+  });
+  
 
 
 db.sequelize.sync().then((req)=>{
