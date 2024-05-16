@@ -61,7 +61,7 @@ app.post("/books", async (req, res) => {
           id: id
         }
       });
-      res.send('book updated');
+      res.send(`${book}+ Updated`);
     } catch (err) {
       res.send(err);
     }
@@ -87,7 +87,7 @@ app.post("/books", async (req, res) => {
   
 
 
-db.sequelize.sync().then((req)=>{
+db.sequelize.sync().then(()=>{
     app.listen(3000, ()=>{
         console.log("server running on port 3000")
     });
