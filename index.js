@@ -11,17 +11,17 @@ app.use(express.urlencoded({
 app.get("/getall",async (req,res)=>{
     console.log("API is up");
     const book = await db.Book.findAll({ });
-    console.log(book)
+    console.log(book) 
 
     res.status(201).send(book);
 
 }) 
 
-app.post("/books", async (req, res) => {
+app.post("/createbooks/", async (req, res) => {
     try {
       const data = req.body;
-      console.log(data);
       const book = await db.Book.create(data);
+      console.log(data);
       res.send(book);
     } catch (err) {
       // Send a 400 Bad Request response if there's an error
@@ -29,46 +29,47 @@ app.post("/books", async (req, res) => {
     }
   });
 
-  app.get('/books/:id', async (req, res) => {
-    const id = parseInt(req.params.id);
+  app.get('/showbook/', async (req, res) => {
+    const id = parseInt(req.query.id);
     if (isNaN(id)) {
       res.status(400).send({ error: 'Invalid ID' });
       return;
     }
     try {
-        const book = await db.Book.findOne({
-          where: {
-            id: id
-          }
-        });
-        if (!book) res.send({
-          Book: "Book not found"
-        });
-        res.send({
-          Book: book
-        });
-      } catch (err) {
-        res.send(err);
-      }
-  });
-
-  app.put('/books/:id', async (req, res) => {
-    const id = req.params.id;
-    const data = req.body;
-    try {
-      const book = await db.Book.update(data, {
+      const book = await db.Book.findOne({
         where: {
           id: id
         }
       });
-      res.send(`${book}+ Updated`);
+      if (!book) return res.send({ Book: "Book not found" });
+      res.send({ Book: book });
     } catch (err) {
       res.send(err);
     }
   });
   
-  app.delete("/books/:id", async (req, res) => {
-    const id = req.params.id;
+
+  app.put('/updatebooks/', async (req, res) => {
+    try {
+      const id = parseInt(req.query.id);
+      const data = req.body;
+      
+      // Update the book record
+      await db.Book.update(data, { where: { id: id } });
+
+      // Retrieve the updated book record
+      const updatedBook = await db.Book.findOne({ where: { id: id } });
+
+      // Send the updated book record in the response
+      res.send({ Book: updatedBook });
+    } catch (err) {
+      res.send(err);
+    }
+});
+
+  
+  app.delete("/deletebooks/", async (req, res) => {
+    const id = parseInt(req.query.id);
     try {
       const deletedCount = await db.Book.destroy({
         where: {
@@ -89,6 +90,6 @@ app.post("/books", async (req, res) => {
 
 db.sequelize.sync().then(()=>{
     app.listen(3000, ()=>{
-        console.log("server running on port 3000")
+        console.log("server running on port 3004")
     });
 })
