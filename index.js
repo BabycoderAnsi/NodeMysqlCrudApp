@@ -90,6 +90,6 @@ app.post("/createbooks/", async (req, res) => {
 
 db.sequelize.sync().then(()=>{
     app.listen(3000, ()=>{
-        console.log("server running on port 3004")
+        console.log("server running on port 3000")
     });
 })
